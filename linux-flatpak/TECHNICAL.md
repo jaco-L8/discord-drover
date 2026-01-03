@@ -112,14 +112,16 @@ Flatpak runs applications in a sandbox with limited filesystem access. Our solut
 
 This path is:
 - Automatically accessible to the Flatpak app
-- Same path inside the Flatpak sandbox (using $HOME variable)
+- Same path inside the Flatpak sandbox
 - Persists across Discord updates
 
 **Flatpak Override:**
 ```bash
 flatpak override --user com.discordapp.Discord \
-    --env=LD_PRELOAD="\$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so"
+    --env=LD_PRELOAD="/home/user/.var/app/com.discordapp.Discord/drover/libdrover.so"
 ```
+
+Note: The actual path will contain your home directory (e.g., `/home/jaco/...`).
 
 This:
 - Sets LD_PRELOAD environment variable for Discord

@@ -64,10 +64,12 @@ flatpak run com.discordapp.Discord
 flatpak override --show com.discordapp.Discord
 ```
 
-You should see:
+You should see (with your actual home directory path):
 ```
-Environment=LD_PRELOAD=$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so
+Environment=LD_PRELOAD=/home/username/.var/app/com.discordapp.Discord/drover/libdrover.so
 ```
+
+Note: The path will contain your actual home directory, not the variable `$HOME`.
 
 ### Method 2: Check logs
 
@@ -148,7 +150,7 @@ This means you have an old version installed. To fix:
 
 3. Restart Discord completely.
 
-The correct path should be `$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so`, not `/var/config/...`
+The path will contain your actual home directory (e.g., `/home/username/.var/app/...`), not the variable `$HOME`.
 
 ### "Permission denied" errors
 

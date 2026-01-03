@@ -112,7 +112,7 @@ make uninstall             # Remove old configuration
 make install               # Install with correct path
 ```
 
-Then restart Discord. The correct path is `$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so`.
+Then restart Discord. The path will use your actual home directory (e.g., `/home/username/.var/app/...`).
 
 ### Discord voice still doesn't work
 

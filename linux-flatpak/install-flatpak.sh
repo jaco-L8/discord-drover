@@ -57,16 +57,14 @@ fi
 echo ""
 echo "Configuring Flatpak override..."
 
-# Get the library path that will be accessible inside the Flatpak sandbox
-# Inside the Flatpak sandbox, ~/.var/app/APP_ID is accessible at the same path
-# We use $HOME to make it work regardless of the user's home directory location
-SANDBOX_LIB_PATH="\$HOME/.var/app/$FLATPAK_APP/drover/$LIB_NAME"
+# LD_PRELOAD doesn't expand environment variables, so we need the actual full path
+# Get the user's home directory
+USER_HOME="$HOME"
 
-# Apply the override
-# Note: Use single quotes around the value to prevent shell expansion of $HOME
-# We want flatpak to receive the literal string "$HOME" so it expands at runtime
+# Apply the override with the full expanded path
+# This path works the same on host and inside Flatpak sandbox
 flatpak override --user "$FLATPAK_APP" \
-    --env=LD_PRELOAD='$HOME'"/.var/app/$FLATPAK_APP/drover/$LIB_NAME"
+    --env=LD_PRELOAD="$USER_HOME/.var/app/$FLATPAK_APP/drover/$LIB_NAME"
 
 echo "✓ Flatpak override applied"
 
