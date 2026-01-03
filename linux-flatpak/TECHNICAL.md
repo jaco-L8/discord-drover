@@ -112,14 +112,13 @@ Flatpak runs applications in a sandbox with limited filesystem access. Our solut
 
 This path is:
 - Automatically accessible to the Flatpak app
-- Maps to `/var/config/drover/libdrover.so` inside the sandbox
+- Same path inside the Flatpak sandbox (using $HOME variable)
 - Persists across Discord updates
 
 **Flatpak Override:**
 ```bash
 flatpak override --user com.discordapp.Discord \
-    --env=LD_PRELOAD="/var/config/drover/libdrover.so" \
-    --filesystem=home
+    --env=LD_PRELOAD="\$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so"
 ```
 
 This:

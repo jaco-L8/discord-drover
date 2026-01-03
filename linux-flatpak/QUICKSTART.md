@@ -66,7 +66,7 @@ flatpak override --show com.discordapp.Discord
 
 You should see:
 ```
-Environment=LD_PRELOAD=/var/config/drover/libdrover.so
+Environment=LD_PRELOAD=$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so
 ```
 
 ### Method 2: Check logs

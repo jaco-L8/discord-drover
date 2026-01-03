@@ -103,7 +103,7 @@ This alters the traffic pattern and bypasses simple DPI filters that block Disco
 ```
 User runs: flatpak run com.discordapp.Discord
     ↓
-Flatpak reads override: LD_PRELOAD=/var/config/drover/libdrover.so
+Flatpak reads override: LD_PRELOAD=$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so
     ↓
 Discord process starts with libdrover.so loaded
     ↓
