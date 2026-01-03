@@ -176,9 +176,20 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
                const struct sockaddr *dest_addr, socklen_t addrlen) {
     if (!initialized) init_drover();
     
+    // Debug: Log UDP sends to help diagnose Direct Mode issues
+    int is_udp = is_udp_socket(sockfd);
+    int is_first = is_first_send(sockfd);
+    
+    if (is_udp && len > 0 && len < 200) {
+        fprintf(stderr, "drover: [DEBUG] UDP send - FD=%d, len=%zu, first=%d\n", 
+                sockfd, len, is_first);
+    }
+    
     // Check if this is the first send on a UDP socket with 74-byte payload
     // This is the Discord voice packet signature
-    if (is_first_send(sockfd) && is_udp_socket(sockfd) && len == 74) {
+    if (is_first && is_udp && len == 74) {
+        fprintf(stderr, "drover: [DIRECT MODE] Activating! Sending probe packets before 74-byte UDP packet\n");
+        
         // Send two small packets before the actual data
         // This helps bypass some network restrictions on UDP voice traffic
         unsigned char payload0 = 0;
@@ -186,6 +197,8 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
         
         real_sendto(sockfd, &payload0, 1, 0, dest_addr, addrlen);
         real_sendto(sockfd, &payload1, 1, 0, dest_addr, addrlen);
+        
+        fprintf(stderr, "drover: [DIRECT MODE] Probe packets sent successfully\n");
         
         // Small delay to ensure packets are sent in order
         usleep(50000); // 50ms
