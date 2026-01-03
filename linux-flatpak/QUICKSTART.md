@@ -124,6 +124,32 @@ sudo pacman -S base-devel
    ```
 3. Restart your computer (to clear any cached settings)
 
+### Seeing "cannot be preloaded" or "/var/config" errors
+
+If you see errors like:
+```
+ERROR: ld.so: object '/var/config/drover/libdrover.so' from LD_PRELOAD cannot be preloaded
+```
+
+This means you have an old version installed. To fix:
+
+1. Pull the latest changes:
+   ```bash
+   git pull
+   ```
+
+2. Uninstall the old version and install the new one:
+   ```bash
+   cd linux-flatpak
+   make uninstall
+   make clean
+   make install
+   ```
+
+3. Restart Discord completely.
+
+The correct path should be `$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so`, not `/var/config/...`
+
 ### "Permission denied" errors
 
 Make sure scripts are executable:

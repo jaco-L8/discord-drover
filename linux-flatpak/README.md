@@ -96,6 +96,24 @@ This is the same technique used by the Windows version in Direct Mode.
 
 ## Troubleshooting
 
+### Error: "cannot be preloaded" or wrong path
+
+If you see errors like:
+```
+ERROR: ld.so: object '/var/config/drover/libdrover.so' from LD_PRELOAD cannot be preloaded
+```
+
+This indicates an outdated installation. The path was corrected in a recent update. To fix:
+
+```bash
+git pull                    # Get latest changes
+cd linux-flatpak
+make uninstall             # Remove old configuration
+make install               # Install with correct path
+```
+
+Then restart Discord. The correct path is `$HOME/.var/app/com.discordapp.Discord/drover/libdrover.so`.
+
 ### Discord voice still doesn't work
 
 1. Make sure Discord is completely closed (including system tray) before restarting
