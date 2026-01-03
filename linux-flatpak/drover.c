@@ -176,10 +176,11 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
                const struct sockaddr *dest_addr, socklen_t addrlen) {
     if (!initialized) init_drover();
     
-    // Debug: Log UDP sends to help diagnose Direct Mode issues
+    // Check if this is UDP and get first-send status ONCE
     int is_udp = is_udp_socket(sockfd);
-    int is_first = is_first_send(sockfd);
+    int is_first = is_first_send(sockfd);  // This marks it as sent, so only call once!
     
+    // Debug: Log UDP sends to help diagnose Direct Mode issues
     if (is_udp && len > 0 && len < 200) {
         fprintf(stderr, "drover: [DEBUG] UDP send - FD=%d, len=%zu, first=%d\n", 
                 sockfd, len, is_first);
