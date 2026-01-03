@@ -46,9 +46,12 @@ proxy = http://127.0.0.1:1080
 
 ### Linux (Flatpak)
 
-For Discord installed via Flatpak on Linux, see the [Linux installation guide](linux-flatpak/README.md).
+For Discord installed via Flatpak on Linux, see the documentation:
+- **[Quick Start Guide](linux-flatpak/QUICKSTART.md)** - Get started in 5 minutes
+- **[Full README](linux-flatpak/README.md)** - Complete installation and usage guide
+- **[Technical Documentation](linux-flatpak/TECHNICAL.md)** - How it works under the hood
 
-Quick start:
+Quick install:
 ```bash
 cd linux-flatpak
 make install
