@@ -63,9 +63,10 @@ echo "Configuring Flatpak override..."
 SANDBOX_LIB_PATH="\$HOME/.var/app/$FLATPAK_APP/drover/$LIB_NAME"
 
 # Apply the override
-# Note: No quotes around the path value - flatpak override expects: --env=VAR=value
+# Note: Use single quotes around the value to prevent shell expansion of $HOME
+# We want flatpak to receive the literal string "$HOME" so it expands at runtime
 flatpak override --user "$FLATPAK_APP" \
-    --env=LD_PRELOAD=$SANDBOX_LIB_PATH
+    --env=LD_PRELOAD='$HOME'"/.var/app/$FLATPAK_APP/drover/$LIB_NAME"
 
 echo "✓ Flatpak override applied"
 
