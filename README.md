@@ -1,12 +1,19 @@
 # Discord Drover (Proxy Settings for Discord)
 
-Discord Drover is a program that forces the Discord application for Windows to use a specified proxy server (HTTP or SOCKS5) for TCP connections (chat, updates). This may be necessary because the original Discord application lacks proxy settings, and the global system proxy is also not used.
+Discord Drover is a program that forces the Discord application to use a specified proxy server (HTTP or SOCKS5) for TCP connections (chat, updates). This may be necessary because the original Discord application lacks proxy settings, and the global system proxy is also not used.
 
 Additionally, the program slightly modifies Discord's outgoing UDP traffic, which helps bypass some local restrictions on voice chats.
 
 The program works locally at the specific process level (without drivers) and does not affect the operating system globally. This approach serves as an alternative to using a global VPN (such as TUN interfaces and others).
 
+## Platform Support
+
+- **Windows**: Full support with GUI installer (HTTP/SOCKS5 proxy + Direct mode)
+- **Linux (Flatpak)**: Direct mode support for UDP manipulation (see [linux-flatpak/README.md](linux-flatpak/README.md))
+
 ## Installation
+
+### Windows
 
 The latest version of the program can be downloaded from the [latest release page](https://github.com/hdrover/discord-drover/releases/latest).
 
@@ -37,7 +44,20 @@ proxy = http://127.0.0.1:1080
 - **use-nekobox-proxy**: Enables the feature to detect if NekoBox is running and use a different proxy if found.
 - **nekobox-proxy**: The proxy used when NekoBox is detected, typically `127.0.0.1:2080`.
 
-## Features
+### Linux (Flatpak)
+
+For Discord installed via Flatpak on Linux, see the documentation:
+- **[Quick Start Guide](linux-flatpak/QUICKSTART.md)** - Get started in 5 minutes
+- **[Full README](linux-flatpak/README.md)** - Complete installation and usage guide
+- **[Technical Documentation](linux-flatpak/TECHNICAL.md)** - How it works under the hood
+
+Quick install:
+```bash
+cd linux-flatpak
+make install
+```
+
+## Features (Windows)
 
 - Forces Discord to use a specified proxy for TCP connections.
 - Slight interference with UDP traffic for bypassing voice chat restrictions. In Direct mode, no proxy is used, only UDP manipulation is performed.
