@@ -42,6 +42,9 @@ static int initialized = 0;
 static int (*real_socket)(int domain, int type, int protocol) = NULL;
 static ssize_t (*real_sendto)(int sockfd, const void *buf, size_t len, int flags,
                                const struct sockaddr *dest_addr, socklen_t addrlen) = NULL;
+static ssize_t (*real_send)(int sockfd, const void *buf, size_t len, int flags) = NULL;
+static ssize_t (*real_sendmsg)(int sockfd, const struct msghdr *msg, int flags) = NULL;
+static ssize_t (*real_write)(int fd, const void *buf, size_t count) = NULL;
 
 // Get current time in milliseconds
 static long long get_time_ms(void) {
@@ -58,8 +61,11 @@ static void init_drover(void) {
     // Load original functions
     real_socket = dlsym(RTLD_NEXT, "socket");
     real_sendto = dlsym(RTLD_NEXT, "sendto");
+    real_send = dlsym(RTLD_NEXT, "send");
+    real_sendmsg = dlsym(RTLD_NEXT, "sendmsg");
+    real_write = dlsym(RTLD_NEXT, "write");
     
-    if (!real_socket || !real_sendto) {
+    if (!real_socket || !real_sendto || !real_send || !real_sendmsg || !real_write) {
         fprintf(stderr, "drover: Failed to load original socket functions\n");
         return;
     }
@@ -171,15 +177,9 @@ int socket(int domain, int type, int protocol) {
     return fd;
 }
 
-// Intercepted sendto function - implements Direct Mode UDP manipulation
-ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
-               const struct sockaddr *dest_addr, socklen_t addrlen) {
-    if (!initialized) init_drover();
-    
-    // Check if this is UDP and get first-send status ONCE
-    int is_udp = is_udp_socket(sockfd);
-    int is_first = is_first_send(sockfd);  // This marks it as sent, so only call once!
-    
+// Common Direct Mode logic - extracts UDP manipulation into helper function
+static void apply_direct_mode(int sockfd, size_t len, int is_first, int is_udp,
+                              const struct sockaddr *dest_addr, socklen_t addrlen) {
     // Debug: Log UDP sends to help diagnose Direct Mode issues
     if (is_udp && len > 0 && len < 200) {
         fprintf(stderr, "drover: [DEBUG] UDP send - FD=%d, len=%zu, first=%d\n", 
@@ -196,14 +196,82 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
         unsigned char payload0 = 0;
         unsigned char payload1 = 1;
         
-        real_sendto(sockfd, &payload0, 1, 0, dest_addr, addrlen);
-        real_sendto(sockfd, &payload1, 1, 0, dest_addr, addrlen);
+        // Use sendto for the probe packets if we have destination, otherwise use send
+        if (dest_addr && addrlen > 0) {
+            real_sendto(sockfd, &payload0, 1, 0, dest_addr, addrlen);
+            real_sendto(sockfd, &payload1, 1, 0, dest_addr, addrlen);
+        } else {
+            real_send(sockfd, &payload0, 1, 0);
+            real_send(sockfd, &payload1, 1, 0);
+        }
         
         fprintf(stderr, "drover: [DIRECT MODE] Probe packets sent successfully\n");
         
         // Small delay to ensure packets are sent in order
         usleep(50000); // 50ms
     }
+}
+
+// Intercepted sendto function - implements Direct Mode UDP manipulation
+ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,
+               const struct sockaddr *dest_addr, socklen_t addrlen) {
+    if (!initialized) init_drover();
+    
+    // Check if this is UDP and get first-send status ONCE
+    int is_udp = is_udp_socket(sockfd);
+    int is_first = is_first_send(sockfd);  // This marks it as sent, so only call once!
+    
+    // Apply Direct Mode if needed
+    apply_direct_mode(sockfd, len, is_first, is_udp, dest_addr, addrlen);
     
     return real_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
+}
+
+// Intercepted send function - Discord likely uses this instead of sendto on Linux
+ssize_t send(int sockfd, const void *buf, size_t len, int flags) {
+    if (!initialized) init_drover();
+    
+    // Check if this is UDP and get first-send status ONCE
+    int is_udp = is_udp_socket(sockfd);
+    int is_first = is_first_send(sockfd);  // This marks it as sent, so only call once!
+    
+    // Apply Direct Mode if needed (no dest_addr for send())
+    apply_direct_mode(sockfd, len, is_first, is_udp, NULL, 0);
+    
+    return real_send(sockfd, buf, len, flags);
+}
+
+// Intercepted sendmsg function - another possible Discord method
+ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags) {
+    if (!initialized) init_drover();
+    
+    // Calculate total message length
+    size_t total_len = 0;
+    for (size_t i = 0; i < msg->msg_iovlen; i++) {
+        total_len += msg->msg_iov[i].iov_len;
+    }
+    
+    // Check if this is UDP and get first-send status ONCE
+    int is_udp = is_udp_socket(sockfd);
+    int is_first = is_first_send(sockfd);  // This marks it as sent, so only call once!
+    
+    // Apply Direct Mode if needed
+    apply_direct_mode(sockfd, total_len, is_first, is_udp, 
+                     (struct sockaddr*)msg->msg_name, msg->msg_namelen);
+    
+    return real_sendmsg(sockfd, msg, flags);
+}
+
+// Intercepted write function - catch any write() calls on UDP sockets
+ssize_t write(int fd, const void *buf, size_t count) {
+    if (!initialized) init_drover();
+    
+    // Check if this is UDP and get first-send status ONCE
+    int is_udp = is_udp_socket(fd);
+    int is_first = is_first_send(fd);  // This marks it as sent, so only call once!
+    
+    // Apply Direct Mode if needed (no dest_addr for write())
+    apply_direct_mode(fd, count, is_first, is_udp, NULL, 0);
+    
+    return real_write(fd, buf, count);
 }
